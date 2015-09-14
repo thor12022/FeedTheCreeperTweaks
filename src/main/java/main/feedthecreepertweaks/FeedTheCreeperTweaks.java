@@ -22,12 +22,8 @@ import main.feedthecreepertweaks.client.gui.CreativeTabBaseMod;
 import main.feedthecreepertweaks.client.gui.GuiHandler;
 import main.feedthecreepertweaks.items.ItemRecipeRegistry;
 import main.feedthecreepertweaks.items.ItemRegistry;
-import main.feedthecreepertweaks.modhandlers.BuildCraftHandler;
-import main.feedthecreepertweaks.modhandlers.ExtraUtilitiesHandler;
+import main.feedthecreepertweaks.modhandlers.MetallurgyHandler;
 import main.feedthecreepertweaks.modhandlers.ProgressiveAutomationHandler;
-import main.feedthecreepertweaks.modhandlers.ThaumcraftHandler;
-import main.feedthecreepertweaks.modhandlers.BiomesOPlentyHandler;
-import main.feedthecreepertweaks.modhandlers.TinkersConstructHandler;
 import main.feedthecreepertweaks.potions.PotionRegistry;
 import main.feedthecreepertweaks.proxies.CommonProxy;
 import main.feedthecreepertweaks.util.EventHandler;
@@ -59,16 +55,6 @@ public class FeedTheCreeperTweaks
    @Mod.Instance
    public static FeedTheCreeperTweaks instance;
 
-   private static BiomeGenBase[] vanillaOverworldBiomes = new BiomeGenBase[]
-      { BiomeGenBase.plains, BiomeGenBase.desert, BiomeGenBase.extremeHills, BiomeGenBase.forest, BiomeGenBase.taiga,
-            BiomeGenBase.swampland, BiomeGenBase.icePlains, BiomeGenBase.iceMountains, BiomeGenBase.beach,
-            BiomeGenBase.desertHills, BiomeGenBase.forestHills, BiomeGenBase.taigaHills, BiomeGenBase.extremeHillsEdge,
-            BiomeGenBase.jungle, BiomeGenBase.jungleHills, BiomeGenBase.jungleEdge, BiomeGenBase.stoneBeach,
-            BiomeGenBase.coldBeach, BiomeGenBase.birchForest, BiomeGenBase.birchForestHills, BiomeGenBase.roofedForest,
-            BiomeGenBase.coldTaiga, BiomeGenBase.coldTaigaHills, BiomeGenBase.megaTaiga, BiomeGenBase.megaTaigaHills,
-            BiomeGenBase.extremeHillsPlus, BiomeGenBase.savanna, BiomeGenBase.savannaPlateau, BiomeGenBase.mesa,
-            BiomeGenBase.mesaPlateau, BiomeGenBase.mesaPlateau_F };
-
    @Mod.EventHandler
    public void preInit(FMLPreInitializationEvent event)
    {
@@ -81,7 +67,7 @@ public class FeedTheCreeperTweaks
       PotionRegistry.registerPotions();
       
       ProgressiveAutomationHandler.preinit(event);
-      ExtraUtilitiesHandler.preinit(event);
+      MetallurgyHandler.preinit(event);
 
       OreDictHandler.registerOreDict();
       FMLCommonHandler.instance().bus().register(new EventHandler());
@@ -96,12 +82,8 @@ public class FeedTheCreeperTweaks
       ItemRecipeRegistry.registerItemRecipes();
       BlockRecipeRegistry.registerBlockRecipes();
 
-      ThaumcraftHandler.init(event);
-      BiomesOPlentyHandler.init(event);
       ProgressiveAutomationHandler.init(event);
-      TinkersConstructHandler.init(event);
-      ExtraUtilitiesHandler.init(event);
-      BuildCraftHandler.init(event);
+      MetallurgyHandler.init(event);
    }
 
    @Mod.EventHandler

@@ -18,9 +18,7 @@ public class ItemRegistry
 
    // items
    // public static Item exampleItem;
-   public static Item starryApple;
-   
-   
+      
    // I use multiple sections here to sort things. It's just my system, you
    // don't have to.
    // Just delete "registerItemSet2" and "registerAllItems" then make this
@@ -28,13 +26,6 @@ public class ItemRegistry
 
    public static void registerItems()
    {
-      // exampleItem = new ItemExample();
-      // GameRegistry.registerItem(exampleItem, "ItemExample");
-      
-      starryApple = new ItemStarryApple();
-      if(ConfigHandler.enableStarryApple)
-      {
-         GameRegistry.registerItem(starryApple, "StarryApple");
-      }
+
    }
 }

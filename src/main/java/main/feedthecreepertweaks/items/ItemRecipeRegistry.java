@@ -7,9 +7,6 @@ package main.feedthecreepertweaks.items;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vanhal.progressiveautomation.items.tools.RecipeWitherTool;
-import com.vanhal.progressiveautomation.items.tools.WitherTools;
-
 import cpw.mods.fml.common.registry.GameRegistry;
 import main.feedthecreepertweaks.ConfigHandler;
 import main.feedthecreepertweaks.FeedTheCreeperTweaks;
@@ -28,16 +25,6 @@ public class ItemRecipeRegistry
       // GameRegistry.addRecipe(new ShapedOreRecipe(new
       // ItemStack(Items.blaze_rod), new Object[]{"X  ", " X ", "  X", 'X',
       // "powderBlaze"}));  
-     
-      if(ConfigHandler.enableStarryApple)
-      {
-         GameRegistry.addShapedRecipe(new ItemStack(ItemRegistry.starryApple), new Object[]{
-            " s ", 
-            "sas", 
-            " s ", 
-            'a', Items.apple, 
-            's', Items.nether_star});
-      }
       
    }
 
