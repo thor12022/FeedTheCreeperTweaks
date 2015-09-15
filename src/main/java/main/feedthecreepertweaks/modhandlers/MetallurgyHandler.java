@@ -59,12 +59,16 @@ public class MetallurgyHandler
          metalName = metal.getName();
          if(metal.haveArmor())
          {
-            int defaultArmourWeight = 1000 - (metal.getArmorEnchantability() + metal.getArmorMultiplier() + metal.getArmorDamageReduction()[0]) * 10;
+            int defaultArmourWeight = 100 - ((metal.getArmorEnchantability() + metal.getArmorMultiplier() + metal.getArmorDamageReduction()[0] * 4));
             if( defaultArmourWeight < 1)
             {
                defaultArmourWeight = 1;
             }
-            armourSpawnWeight = ConfigHandler.config.getInt(armourSpawnWeightString, configSection + "." + metalSetName + "." + metalName, defaultArmourWeight, 0, 10000, "");
+            else
+            {
+               defaultArmourWeight = (int) Math.pow( defaultArmourWeight * 0.1f, 5);
+            }
+            armourSpawnWeight = ConfigHandler.config.getInt(armourSpawnWeightString, configSection + "." + metalSetName + "." + metalName, defaultArmourWeight, 0, 100000, "");
             if(armourSpawnWeight > 0)
             {
                armourSpawnRange = Range.between(totalArmourWeight + 1, totalArmourWeight + armourSpawnWeight);
@@ -74,12 +78,16 @@ public class MetallurgyHandler
 
          if(metal.haveTools())
          {
-            int defaultWeaponsWeight = 1000 - (metal.getToolDurability()/5) - metal.getToolEncantabilty() - (metal.getToolDamage()*5);
+            int defaultWeaponsWeight = 350 - (metal.getToolDurability()/5) - metal.getToolEncantabilty() - (metal.getToolDamage()*5);
             if( defaultWeaponsWeight < 1)
             {
                defaultWeaponsWeight = 1;
             }
-            weaponSpawnWeight = ConfigHandler.config.getInt(weaponSpawnWeightString, configSection + "." + metalSetName + "." + metalName, defaultWeaponsWeight, 0, 10000, "");
+            else
+            {
+               defaultWeaponsWeight = (int) Math.pow( defaultWeaponsWeight * 0.1f, 3);
+            }
+            weaponSpawnWeight = ConfigHandler.config.getInt(weaponSpawnWeightString, configSection + "." + metalSetName + "." + metalName, defaultWeaponsWeight, 0, 100000, "");
             if(weaponSpawnWeight > 0)
             {
                weaponSpawnRange = Range.between(totalWeaponWeight + 1, totalWeaponWeight + weaponSpawnWeight);
