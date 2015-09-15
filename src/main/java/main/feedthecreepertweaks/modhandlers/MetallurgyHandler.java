@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import com.teammetallurgy.metallurgy.api.IMetalInfo;
 import com.teammetallurgy.metallurgy.api.IMetalSet;
@@ -27,11 +28,13 @@ public class MetallurgyHandler
 {
    private static MetallurgyHandler instance = new MetallurgyHandler();
    
+
+   private static String configSection = "Metallurgy";
+   
    private static class MetalSpawningInfo
    {
       public int weaponSpawnWeight = 1;
       public int armourSpawnWeight = 1;
-      public float dropChance = 0.0001f;
       
       public String metalName;
       public String metalSetName;
@@ -39,20 +42,13 @@ public class MetallurgyHandler
       private Range<Integer> weaponSpawnRange = Range.is(-1);
       private Range<Integer> armourSpawnRange = Range.is(-1);
       
-      private static int totalWeaponWeight = 0;
-      private static int totalArmourWeight = 0;
+      private static int weaponMaxRandNum = 0;
+      private static int armourMaxRandNum = 0;
       
       private static final String weaponSpawnWeightString = "weaponSpawnWeight";
       private static final String armourSpawnWeightString = "armourSpawnWeight";
       private static final String dropChanceString = "dropChance";
-      
-      private static List<MetalSpawningInfo> metalList = new LinkedList<MetalSpawningInfo>();
-      
-      public static void AddMetal(IMetalInfo metal, String metalSet)
-      {
-         metalList.add(new MetalSpawningInfo(metal, metalSet));
-      }
-      
+
       private MetalSpawningInfo(IMetalInfo metal, String metalSet)
       {
          metalSetName = metalSet;
@@ -60,7 +56,7 @@ public class MetallurgyHandler
          if(metal.haveArmor())
          {
             int defaultArmourWeight = 100 - ((metal.getArmorEnchantability() + metal.getArmorMultiplier() + metal.getArmorDamageReduction()[0] * 4));
-            if( defaultArmourWeight < 1)
+            if( defaultArmourWeight <= 1)
             {
                defaultArmourWeight = 1;
             }
@@ -71,15 +67,15 @@ public class MetallurgyHandler
             armourSpawnWeight = ConfigHandler.config.getInt(armourSpawnWeightString, configSection + "." + metalSetName + "." + metalName, defaultArmourWeight, 0, 100000, "");
             if(armourSpawnWeight > 0)
             {
-               armourSpawnRange = Range.between(totalArmourWeight + 1, totalArmourWeight + armourSpawnWeight);
-               totalArmourWeight += armourSpawnWeight;
+               armourSpawnRange = Range.between(armourMaxRandNum + 1, armourMaxRandNum + armourSpawnWeight);
+               armourMaxRandNum += armourSpawnWeight;
             }
          }
 
          if(metal.haveTools())
          {
             int defaultWeaponsWeight = 350 - (metal.getToolDurability()/5) - metal.getToolEncantabilty() - (metal.getToolDamage()*5);
-            if( defaultWeaponsWeight < 1)
+            if( defaultWeaponsWeight <= 1)
             {
                defaultWeaponsWeight = 1;
             }
@@ -90,40 +86,12 @@ public class MetallurgyHandler
             weaponSpawnWeight = ConfigHandler.config.getInt(weaponSpawnWeightString, configSection + "." + metalSetName + "." + metalName, defaultWeaponsWeight, 0, 100000, "");
             if(weaponSpawnWeight > 0)
             {
-               weaponSpawnRange = Range.between(totalWeaponWeight + 1, totalWeaponWeight + weaponSpawnWeight);
-               totalWeaponWeight += weaponSpawnWeight;
+               weaponSpawnRange = Range.between(weaponMaxRandNum + 1, weaponMaxRandNum + weaponSpawnWeight);
+               weaponMaxRandNum += weaponSpawnWeight;
             }
          }
-         dropChance = ConfigHandler.config.getFloat(dropChanceString, configSection + "." + metalSetName + "." + metalName, dropChance, 0f, 1, "");
-
-         ConfigHandler.config.save();
       }
 
-      public static MetalSpawningInfo getRandomWeaponMetal(int testWeight)
-      {
-         for(MetalSpawningInfo metalInfo : metalList)
-         {
-            if( metalInfo.isValidWeaponSpawn(testWeight))
-            {
-               return metalInfo;
-            }
-         }
-         return null;
-      }
-
-      public static MetalSpawningInfo getRandomArmourMetal(int testWeight)
-      {
-         for(MetalSpawningInfo metalInfo : metalList)
-         {
-            if( metalInfo.isValidArmourSpawn(testWeight))
-            {
-               return metalInfo;
-            }
-         }
-         return null;
-      }
-      
-      
       public boolean isValidWeaponSpawn(int testWeight)
       {
          return weaponSpawnRange.contains(testWeight);
@@ -134,10 +102,11 @@ public class MetallurgyHandler
          return armourSpawnRange.contains(testWeight);
       }
    }
-   private static String configSection = "Metallurgy";
+
+   private static List<MetalSpawningInfo> metalList = new LinkedList<MetalSpawningInfo>();
    
    private boolean doMobSpawns = true;
-   private float   mobSpawnChance = 0.01f; 
+   private float   mobSpawnChance = 0.005f; 
    
    public static void preinit(FMLPreInitializationEvent event)
    {
@@ -158,16 +127,21 @@ public class MetallurgyHandler
    {
       for(String setName : MetallurgyApi.getSetNames())
       {
-         IMetalSet metalSet = MetallurgyApi.getMetalSet(setName);
-         for(String metalName : metalSet.getMetalNames())
+         boolean useMetalSet = ConfigHandler.config.getBoolean("UseMetalSet", configSection + "." + setName, true, "If false, all metals in set will be ignored, any already spawned will stay");
+         if(useMetalSet)
          {
-            IMetalInfo metalInfo = metalSet.getMetal(metalName);
-            if(metalInfo.haveTools() || metalInfo.haveArmor())
+            IMetalSet metalSet = MetallurgyApi.getMetalSet(setName);
+            for(String metalName : metalSet.getMetalNames())
             {
-               MetalSpawningInfo.AddMetal(metalInfo, setName);
+               IMetalInfo metalInfo = metalSet.getMetal(metalName);
+               if(metalInfo.haveTools() || metalInfo.haveArmor())
+               {
+                  metalList.add(new MetalSpawningInfo(metalInfo, setName));
+               }
             }
          }
       }
+      ConfigHandler.config.save();
    }
    
    @SubscribeEvent
@@ -179,7 +153,7 @@ public class MetallurgyHandler
          // only give Zombies swords
          if(((event.entityLiving instanceof EntityZombie) ? event.world.rand.nextFloat() : 1) < mobSpawnChance)
          {
-            MetalSpawningInfo metal = MetalSpawningInfo.getRandomWeaponMetal(event.world.rand.nextInt(MetalSpawningInfo.totalWeaponWeight));
+            MetalSpawningInfo metal = getRandomWeaponMetal(event.world.rand);
             if(metal != null)
             {
                event.entityLiving.setCurrentItemOrArmor(0, MetallurgyApi.getMetalSet(metal.metalSetName).getSword(metal.metalName));
@@ -189,43 +163,67 @@ public class MetallurgyHandler
          // Helmet
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = MetalSpawningInfo.getRandomArmourMetal(event.world.rand.nextInt(MetalSpawningInfo.totalArmourWeight));
+            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(1, MetallurgyApi.getMetalSet(metal.metalSetName).getHelmet(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(4, MetallurgyApi.getMetalSet(metal.metalSetName).getHelmet(metal.metalName));
             }
          }
          
          // Chestplate
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = MetalSpawningInfo.getRandomArmourMetal(event.world.rand.nextInt(MetalSpawningInfo.totalArmourWeight));
+            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(2, MetallurgyApi.getMetalSet(metal.metalSetName).getChestplate(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(3, MetallurgyApi.getMetalSet(metal.metalSetName).getChestplate(metal.metalName));
             }
          }
 
          // Leggings
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = MetalSpawningInfo.getRandomArmourMetal(event.world.rand.nextInt(MetalSpawningInfo.totalArmourWeight));
+            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(3, MetallurgyApi.getMetalSet(metal.metalSetName).getLeggings(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(2, MetallurgyApi.getMetalSet(metal.metalSetName).getLeggings(metal.metalName));
             }
          }
 
          // Boots
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = MetalSpawningInfo.getRandomArmourMetal(event.world.rand.nextInt(MetalSpawningInfo.totalArmourWeight));
+            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(4, MetallurgyApi.getMetalSet(metal.metalSetName).getBoots(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(1, MetallurgyApi.getMetalSet(metal.metalSetName).getBoots(metal.metalName));
             }
          }
          
       }
+   }
+   
+   private static MetalSpawningInfo getRandomWeaponMetal(Random rand)
+   {
+      for(MetalSpawningInfo metalInfo : metalList)
+      {
+         if( metalInfo.isValidWeaponSpawn(rand.nextInt(MetalSpawningInfo.weaponMaxRandNum)))
+         {
+            return metalInfo;
+         }
+      }
+      return null;
+   }
+
+   private static MetalSpawningInfo getRandomArmourMetal(Random rand)
+   {
+      for(MetalSpawningInfo metalInfo : metalList)
+      {
+         if( metalInfo.isValidArmourSpawn(rand.nextInt(MetalSpawningInfo.armourMaxRandNum)))
+         {
+            return metalInfo;
+         }
+      }
+      return null;
    }
 }
