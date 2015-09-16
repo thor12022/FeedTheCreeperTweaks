@@ -104,6 +104,18 @@ public class MetallurgyHandler
    }
 
    private static List<MetalSpawningInfo> metalList = new LinkedList<MetalSpawningInfo>();
+   private static Map<String, String> metalSetDimensionMap = new HashMap<String, String>();
+   private static final Map<String, String> metalSetDefaultDimensionMap;
+   static
+   {
+      metalSetDefaultDimensionMap = new HashMap<String, String>();
+      metalSetDefaultDimensionMap.put("base", "0,2-100000");
+      metalSetDefaultDimensionMap.put("precious", "0,2-100000");
+      metalSetDefaultDimensionMap.put("fantasy", "0,2-100000");
+      metalSetDefaultDimensionMap.put("nether", "-1");
+      metalSetDefaultDimensionMap.put("ender", "1");
+      metalSetDefaultDimensionMap.put("utility", "");
+   }
    
    private boolean doMobSpawns = true;
    private float   mobSpawnChance = 0.005f; 
@@ -128,6 +140,10 @@ public class MetallurgyHandler
       for(String setName : MetallurgyApi.getSetNames())
       {
          boolean useMetalSet = ConfigHandler.config.getBoolean("UseMetalSet", configSection + "." + setName, true, "If false, all metals in set will be ignored, any already spawned will stay");
+         metalSetDimensionMap.put(setName, ConfigHandler.config.getString("SpawnMobItemsInDimensions", 
+                                                                          configSection + "." + setName, 
+                                                                          metalSetDefaultDimensionMap.get(setName), 
+                                                                          "Dimensions where this metal set will spawn as armour and weapons on mobs"));
          if(useMetalSet)
          {
             IMetalSet metalSet = MetallurgyApi.getMetalSet(setName);
@@ -153,7 +169,7 @@ public class MetallurgyHandler
          // only give Zombies swords
          if(((event.entityLiving instanceof EntityZombie) ? event.world.rand.nextFloat() : 1) < mobSpawnChance)
          {
-            MetalSpawningInfo metal = getRandomWeaponMetal(event.world.rand);
+            MetalSpawningInfo metal = getRandomWeaponMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
                event.entityLiving.setCurrentItemOrArmor(0, MetallurgyApi.getMetalSet(metal.metalSetName).getSword(metal.metalName));
@@ -163,8 +179,8 @@ public class MetallurgyHandler
          // Helmet
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
-            if(metal != null)
+            MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
+            if(metal != null && ConfigHandler.numberIsInSelection(event.entityLiving.dimension, metalSetDimensionMap.get(metal.metalSetName)))
             {
                event.entityLiving.setCurrentItemOrArmor(4, MetallurgyApi.getMetalSet(metal.metalSetName).getHelmet(metal.metalName));
             }
@@ -173,7 +189,7 @@ public class MetallurgyHandler
          // Chestplate
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
+            MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
                event.entityLiving.setCurrentItemOrArmor(3, MetallurgyApi.getMetalSet(metal.metalSetName).getChestplate(metal.metalName));
@@ -183,7 +199,7 @@ public class MetallurgyHandler
          // Leggings
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
+            MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
                event.entityLiving.setCurrentItemOrArmor(2, MetallurgyApi.getMetalSet(metal.metalSetName).getLeggings(metal.metalName));
@@ -193,7 +209,7 @@ public class MetallurgyHandler
          // Boots
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
-            MetalSpawningInfo metal = getRandomArmourMetal(event.world.rand);
+            MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
                event.entityLiving.setCurrentItemOrArmor(1, MetallurgyApi.getMetalSet(metal.metalSetName).getBoots(metal.metalName));
@@ -203,11 +219,12 @@ public class MetallurgyHandler
       }
    }
    
-   private static MetalSpawningInfo getRandomWeaponMetal(Random rand)
+   private static MetalSpawningInfo getRandomWeaponMetal(int dim, Random rand)
    {
       for(MetalSpawningInfo metalInfo : metalList)
       {
-         if( metalInfo.isValidWeaponSpawn(rand.nextInt(MetalSpawningInfo.weaponMaxRandNum)))
+         if( ConfigHandler.numberIsInSelection(dim, metalSetDimensionMap.get(metalInfo.metalSetName)) && 
+               metalInfo.isValidWeaponSpawn(rand.nextInt(MetalSpawningInfo.weaponMaxRandNum)))
          {
             return metalInfo;
          }
@@ -215,11 +232,12 @@ public class MetallurgyHandler
       return null;
    }
 
-   private static MetalSpawningInfo getRandomArmourMetal(Random rand)
+   private static MetalSpawningInfo getRandomArmourMetal(int dim, Random rand)
    {
       for(MetalSpawningInfo metalInfo : metalList)
       {
-         if( metalInfo.isValidArmourSpawn(rand.nextInt(MetalSpawningInfo.armourMaxRandNum)))
+         if( ConfigHandler.numberIsInSelection(dim, metalSetDimensionMap.get(metalInfo.metalSetName)) && 
+             metalInfo.isValidArmourSpawn(rand.nextInt(MetalSpawningInfo.armourMaxRandNum)))
          {
             return metalInfo;
          }
