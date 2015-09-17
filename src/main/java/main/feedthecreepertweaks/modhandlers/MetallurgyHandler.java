@@ -23,6 +23,7 @@ import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent.*;
 
 public class MetallurgyHandler
 
@@ -119,7 +120,7 @@ public class MetallurgyHandler
    }
    
    private boolean doMobSpawns = true;
-   private float   mobSpawnChance = 0.005f; 
+   private float   mobSpawnChance = 0.01f; 
    
    public static void preinit(FMLPreInitializationEvent event)
    {
@@ -165,11 +166,15 @@ public class MetallurgyHandler
    @SubscribeEvent
    public void onLivingSpawn(LivingSpawnEvent event)
    {
+      if(event instanceof AllowDespawn)
+      {
+         return;
+      }
       // Only give armour and weapons to Zombies and skeletons
       if(event.entityLiving instanceof EntityZombie || event.entityLiving instanceof EntitySkeleton)
       {
          // only give Zombies swords
-         if(((event.entityLiving instanceof EntityZombie) ? event.world.rand.nextFloat() : 1) < mobSpawnChance)
+         if(((event.entityLiving instanceof EntityZombie) ? event.world.rand.nextFloat() : 1) < mobSpawnChance && event.entityLiving.getHeldItem() == null)
          {
             MetalSpawningInfo metal = getRandomWeaponMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)

@@ -16,25 +16,23 @@ public class MultiRange
    public MultiRange(String rangeList)
    {
       stringRep = rangeList;
-      boolean retValue = false;
-      String[] commaSeperated = rangeList.split(",");
-      for(String range : commaSeperated)
+      if(rangeList.length() > 0)
       {
-         int seperatorPos = range.lastIndexOf("-");
-         int firstNum = 0, lastNum = 0;
-         if(seperatorPos > 0 && range.length() > seperatorPos)
+         String[] commaSeperated = rangeList.split(",");
+         for(String range : commaSeperated)
          {
-            firstNum = Integer.parseInt(range.substring(0, seperatorPos - 1));
-            lastNum = Integer.parseInt(range.substring(seperatorPos + 1));
-            ranges.add(Range.between(firstNum, lastNum));
-         }
-         else
-         {
-             ranges.add(Range.is(Integer.parseInt(range)));
-         }
-         if(retValue)
-         {
-            break;
+            int seperatorPos = range.lastIndexOf("-");
+            int firstNum = 0, lastNum = 0;
+            if(seperatorPos > 0 && range.length() - 1 > seperatorPos)
+            {
+               firstNum = Integer.parseInt(range.substring(0, seperatorPos));
+               lastNum = Integer.parseInt(range.substring(seperatorPos + 1));
+               ranges.add(Range.between(firstNum, lastNum));
+            }
+            else
+            {
+                ranges.add(Range.is(Integer.parseInt(range)));
+            }
          }
       }
    }
