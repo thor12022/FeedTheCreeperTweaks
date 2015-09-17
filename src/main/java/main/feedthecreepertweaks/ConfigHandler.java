@@ -39,41 +39,4 @@ public class ConfigHandler
       
       config.save();
    }
-   
-   /**
-    * @param selection list of number ranges, e.g. "-1,2,4-9"
-    * @todo this should throw an exception, so we can know where the error is
-    */
-   public static boolean numberIsInSelection(int num, String selection)
-   {
-      boolean retValue = false;
-      try
-      {
-         String[] commaSeperated = selection.split(",");
-         for(String range : commaSeperated)
-         {
-            int seperatorPos = range.lastIndexOf("-");
-            int firstNum = 0, lastNum = 0;
-            if(seperatorPos > 0 && range.length() > seperatorPos)
-            {
-               firstNum = Integer.parseInt(range.substring(0, seperatorPos - 1));
-               lastNum = Integer.parseInt(range.substring(seperatorPos + 1));
-               retValue = Range.between(firstNum, lastNum).contains(num);
-            }
-            else
-            {
-               retValue = Integer.parseInt(range) == num;
-            }
-            if(retValue)
-            {
-               break;
-            }
-         }
-      }
-      catch( Exception e)
-      {
-         FeedTheCreeperTweaks.logger.warn("Badly formatted selection: \"" + selection + "\"");
-      }
-      return retValue;
-   }
 }

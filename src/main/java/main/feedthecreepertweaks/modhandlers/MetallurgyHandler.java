@@ -18,6 +18,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import main.feedthecreepertweaks.ConfigHandler;
 import main.feedthecreepertweaks.FeedTheCreeperTweaks;
+import main.feedthecreepertweaks.util.MultiRange;
 import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraftforge.common.MinecraftForge;
@@ -104,17 +105,17 @@ public class MetallurgyHandler
    }
 
    private static List<MetalSpawningInfo> metalList = new LinkedList<MetalSpawningInfo>();
-   private static Map<String, String> metalSetDimensionMap = new HashMap<String, String>();
-   private static final Map<String, String> metalSetDefaultDimensionMap;
+   private static Map<String, MultiRange> metalSetDimensionMap = new HashMap<String, MultiRange>();
+   private static final Map<String, MultiRange> metalSetDefaultDimensionMap;
    static
    {
-      metalSetDefaultDimensionMap = new HashMap<String, String>();
-      metalSetDefaultDimensionMap.put("base", "0,2-100000");
-      metalSetDefaultDimensionMap.put("precious", "0,2-100000");
-      metalSetDefaultDimensionMap.put("fantasy", "0,2-100000");
-      metalSetDefaultDimensionMap.put("nether", "-1");
-      metalSetDefaultDimensionMap.put("ender", "1");
-      metalSetDefaultDimensionMap.put("utility", "");
+      metalSetDefaultDimensionMap = new HashMap<String, MultiRange>();
+      metalSetDefaultDimensionMap.put("base", new MultiRange("0,2-100000"));
+      metalSetDefaultDimensionMap.put("precious", new MultiRange("0,2-100000"));
+      metalSetDefaultDimensionMap.put("fantasy", new MultiRange("0,2-100000"));
+      metalSetDefaultDimensionMap.put("nether", new MultiRange("-1"));
+      metalSetDefaultDimensionMap.put("ender", new MultiRange("1"));
+      metalSetDefaultDimensionMap.put("utility", new MultiRange(""));
    }
    
    private boolean doMobSpawns = true;
@@ -140,10 +141,11 @@ public class MetallurgyHandler
       for(String setName : MetallurgyApi.getSetNames())
       {
          boolean useMetalSet = ConfigHandler.config.getBoolean("UseMetalSet", configSection + "." + setName, true, "If false, all metals in set will be ignored, any already spawned will stay");
-         metalSetDimensionMap.put(setName, ConfigHandler.config.getString("SpawnMobItemsInDimensions", 
-                                                                          configSection + "." + setName, 
-                                                                          metalSetDefaultDimensionMap.get(setName), 
-                                                                          "Dimensions where this metal set will spawn as armour and weapons on mobs"));
+         String rangeString = ConfigHandler.config.getString("SpawnMobItemsInDimensions", 
+                                                             configSection + "." + setName, 
+                                                             metalSetDefaultDimensionMap.get(setName).toString(), 
+                                                             "Dimensions where this metal set will spawn as armour and weapons on mobs");
+         metalSetDimensionMap.put(setName, new MultiRange(rangeString));
          if(useMetalSet)
          {
             IMetalSet metalSet = MetallurgyApi.getMetalSet(setName);
@@ -180,7 +182,7 @@ public class MetallurgyHandler
          if(event.world.rand.nextFloat() < mobSpawnChance)
          {
             MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
-            if(metal != null && ConfigHandler.numberIsInSelection(event.entityLiving.dimension, metalSetDimensionMap.get(metal.metalSetName)))
+            if(metal != null)
             {
                event.entityLiving.setCurrentItemOrArmor(4, MetallurgyApi.getMetalSet(metal.metalSetName).getHelmet(metal.metalName));
             }
@@ -223,8 +225,8 @@ public class MetallurgyHandler
    {
       for(MetalSpawningInfo metalInfo : metalList)
       {
-         if( ConfigHandler.numberIsInSelection(dim, metalSetDimensionMap.get(metalInfo.metalSetName)) && 
-               metalInfo.isValidWeaponSpawn(rand.nextInt(MetalSpawningInfo.weaponMaxRandNum)))
+         if(metalInfo.isValidWeaponSpawn(rand.nextInt(MetalSpawningInfo.weaponMaxRandNum))&&
+            metalSetDimensionMap.get(metalInfo.metalSetName).contains(dim))
          {
             return metalInfo;
          }
@@ -236,8 +238,8 @@ public class MetallurgyHandler
    {
       for(MetalSpawningInfo metalInfo : metalList)
       {
-         if( ConfigHandler.numberIsInSelection(dim, metalSetDimensionMap.get(metalInfo.metalSetName)) && 
-             metalInfo.isValidArmourSpawn(rand.nextInt(MetalSpawningInfo.armourMaxRandNum)))
+         if(metalInfo.isValidArmourSpawn(rand.nextInt(MetalSpawningInfo.armourMaxRandNum)) &&
+            metalSetDimensionMap.get(metalInfo.metalSetName).contains(dim))
          {
             return metalInfo;
          }
