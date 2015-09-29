@@ -20,10 +20,11 @@ import main.feedthecreepertweaks.blocks.BlockRecipeRegistry;
 import main.feedthecreepertweaks.blocks.BlockRegistry;
 import main.feedthecreepertweaks.client.gui.CreativeTabBaseMod;
 import main.feedthecreepertweaks.client.gui.GuiHandler;
+import main.feedthecreepertweaks.handlers.MetallurgyHandler;
+import main.feedthecreepertweaks.handlers.PigmanAgroHandler;
+import main.feedthecreepertweaks.handlers.ProgressiveAutomationHandler;
 import main.feedthecreepertweaks.items.ItemRecipeRegistry;
 import main.feedthecreepertweaks.items.ItemRegistry;
-import main.feedthecreepertweaks.modhandlers.MetallurgyHandler;
-import main.feedthecreepertweaks.modhandlers.ProgressiveAutomationHandler;
 import main.feedthecreepertweaks.potions.PotionRegistry;
 import main.feedthecreepertweaks.proxies.CommonProxy;
 import main.feedthecreepertweaks.util.EventHandler;
@@ -51,6 +52,8 @@ public class FeedTheCreeperTweaks
 
    public static CreativeTabs tabBaseMod = new CreativeTabBaseMod(ModInformation.ID + ".creativeTab");
    public static Logger logger = LogManager.getLogger(ModInformation.NAME);
+   
+   private PigmanAgroHandler pigmanAgroHandler;
 
    @Mod.Instance
    public static FeedTheCreeperTweaks instance;
@@ -60,7 +63,7 @@ public class FeedTheCreeperTweaks
    {
       logger.info(TextHelper.localize("info." + ModInformation.ID + ".console.load.preInit"));
 
-      ConfigHandler.init(event.getSuggestedConfigurationFile());
+      ConfigHandler.init(event.getModConfigurationDirectory());
 
       ItemRegistry.registerItems();
       BlockRegistry.registerBlocks();
@@ -70,6 +73,10 @@ public class FeedTheCreeperTweaks
       MetallurgyHandler.preinit(event);
 
       OreDictHandler.registerOreDict();
+      
+
+      pigmanAgroHandler = PigmanAgroHandler.create();
+      
       FMLCommonHandler.instance().bus().register(new EventHandler());
       NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
    }
@@ -84,6 +91,7 @@ public class FeedTheCreeperTweaks
 
       ProgressiveAutomationHandler.init(event);
       MetallurgyHandler.init(event);
+
    }
 
    @Mod.EventHandler

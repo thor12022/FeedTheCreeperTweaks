@@ -14,6 +14,7 @@ public class ConfigHandler
 {
 
    public static Configuration config;
+   public static String configDirectory;
    
    // Sections to add to the config
    public static final String generalSection = "General";
@@ -25,9 +26,10 @@ public class ConfigHandler
    public static boolean doDebug = false;
    public static boolean progressiveAutomationToolOverride = true;
    
-   public static void init(File file)
+   public static void init(File configDir)
    {
-      config = new Configuration(file);
+      configDirectory = configDir.getAbsolutePath();
+      config = new Configuration( new File(configDirectory + File.separator + ModInformation.CHANNEL + File.separator + ModInformation.CHANNEL + ".cfg"));
       syncConfig();
    }
 

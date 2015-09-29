@@ -1,4 +1,4 @@
-package main.feedthecreepertweaks.modhandlers;
+package main.feedthecreepertweaks.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
