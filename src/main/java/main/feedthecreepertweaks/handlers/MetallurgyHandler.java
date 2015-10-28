@@ -25,6 +25,8 @@ import net.minecraft.entity.monster.EntityZombie;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent.*;
+import tconstruct.library.TConstructRegistry;
+import tconstruct.library.tools.ToolMaterial;
 
 public class MetallurgyHandler
 
@@ -41,6 +43,8 @@ public class MetallurgyHandler
       
       public String metalName;
       public String metalSetName;
+      
+      public int tcMaterialId = -1;
       
       private Range<Integer> weaponSpawnRange = Range.is(-1);
       private Range<Integer> armourSpawnRange = Range.is(-1);
@@ -77,6 +81,18 @@ public class MetallurgyHandler
 
          if(metal.haveTools())
          {
+            ToolMaterial metalMaterial = TConstructRegistry.getMaterial(metalName);
+            if(metalMaterial != null)
+            {
+               //! @todo there must be a better way in the TC API, I'm just not seeing it
+               for(int materialId : TConstructRegistry.toolMaterials.keySet())
+               {
+                  if(TConstructRegistry.toolMaterials.get(materialId) == metalMaterial)
+                  {
+                     tcMaterialId = materialId;
+                  }
+               }
+            }
             int defaultWeaponsWeight = 350 - (metal.getToolDurability()/5) - metal.getToolEncantabilty() - (metal.getToolDamage()*5);
             if( defaultWeaponsWeight <= 1)
             {
@@ -122,19 +138,20 @@ public class MetallurgyHandler
    
    private boolean doMobSpawns = true;
    private float   mobSpawnChance = 0.03f; 
+   private boolean useTinkersSwords = false;
    
    public static void preinit(FMLPreInitializationEvent event)
    {
       populateMetals();
-   }
-
-   public static void init(FMLInitializationEvent event)
-   {
+      
       instance.doMobSpawns = ConfigHandler.config.getBoolean("doMobSpawn",configSection, instance.doMobSpawns, "Mobs Spawn With Metallurgy Weapons/Armour");
       instance.mobSpawnChance = ConfigHandler.config.getFloat("mobSpawnChance",configSection, instance.mobSpawnChance, 0f, 1f, "Chance mobs will spawn with Metallurgy Weapons/Armour");
       
       ConfigHandler.config.save();
-      
+   }
+
+   public static void init(FMLInitializationEvent event)
+   {
       MinecraftForge.EVENT_BUS.register(instance);
    }
    
