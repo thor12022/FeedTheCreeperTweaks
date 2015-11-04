@@ -192,7 +192,7 @@ public class MetallurgyHandler
       if(event.entityLiving instanceof EntityZombie || event.entityLiving instanceof EntityPigZombie || event.entityLiving instanceof EntitySkeleton)
       {
          // only give Zombies swords
-         if(((event.entityLiving instanceof EntityZombie || event.entityLiving instanceof EntityPigZombie) ? event.world.rand.nextFloat() : 1) < mobSpawnChance && event.entityLiving.getHeldItem() == null)
+         if(((event.entityLiving instanceof EntityZombie || event.entityLiving instanceof EntityPigZombie) ? event.world.rand.nextFloat() : 1) < mobSpawnChance )
          {
             MetalSpawningInfo metal = getRandomWeaponMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
