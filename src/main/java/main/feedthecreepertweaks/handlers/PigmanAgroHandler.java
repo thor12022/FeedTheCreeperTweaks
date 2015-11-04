@@ -8,7 +8,6 @@ import com.teammetallurgy.metallurgy.api.MetallurgyApi;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,6 @@ import javax.swing.plaf.metal.MetalScrollBarUI;
 import org.apache.commons.io.FileUtils;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
 import main.feedthecreepertweaks.ConfigHandler;
 import main.feedthecreepertweaks.FeedTheCreeperTweaks;
 import main.feedthecreepertweaks.ModInformation;
@@ -37,8 +35,10 @@ public class PigmanAgroHandler
    private static final String configSectionName = "PigmanAgroHandler";
    private int       agroRange = 32;
    private boolean   metallurgyCompatability = true;
-   //! @todo this should use Block Ids rather than names for performance reasons. However, if I do that, 
-   //!   the Ids are different in the event than they were in the registration for some reason
+   /** 
+    * @todo this should use Block Ids rather than names for performance reasons. However, if I do that, 
+    *    the Ids are different in the event than they were in the registration for some reason
+   **/   
    private Multimap<String, Integer> idToMetadataMap = HashMultimap.create();
    
    private PigmanAgroHandler()
@@ -120,19 +120,9 @@ public class PigmanAgroHandler
    {
       if(!event.isSilkTouching && event.harvester != null && !event.harvester.capabilities.isCreativeMode)
       {
-         String output = new String();
-         for( String i : idToMetadataMap.keySet())
-         {
-            for( Integer j : idToMetadataMap.get(i) )
-            {
-               output += " " + i + "," + j;
-            }
-         }
-         FeedTheCreeperTweaks.logger.debug(output);
-         FeedTheCreeperTweaks.logger.debug(event.block.getLocalizedName() + "," + Integer.toString(event.blockMetadata));
          if(idToMetadataMap.containsEntry(event.block.getLocalizedName(),  event.blockMetadata))
          {
-            FeedTheCreeperTweaks.logger.debug( event.harvester.getDisplayName() +  " Angered the Zombie Pigmen");
+            FeedTheCreeperTweaks.logger.info( event.harvester.getDisplayName() +  " Angered the Zombie Pigmen");
             List<EntityPigZombie> list = event.world.getEntitiesWithinAABB(EntityPigZombie.class,
                                                                            AxisAlignedBB.getBoundingBox(event.x - agroRange, 
                                                                                                         event.y - agroRange, 
