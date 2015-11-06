@@ -11,7 +11,7 @@ public class ModInformation
    public static final String ID = "feedthecreepertweaks";
    public static final String CHANNEL = "FeedTheCreeperTweaks";
    public static final String DEPEND = "required-after:progressiveautomation;required-after:Metallurgy;required-after:TConstruct;after:ExtraTiC";
-   public static final String VERSION = "2.1.1";
+   public static final String VERSION = "2.1.2";
    public static final String CLIENTPROXY = "main.feedthecreepertweaks.proxies.ClientProxy";
    public static final String COMMONPROXY = "main.feedthecreepertweaks.proxies.CommonProxy";;
 }

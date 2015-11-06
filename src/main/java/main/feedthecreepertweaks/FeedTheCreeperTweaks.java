@@ -91,7 +91,8 @@ public class FeedTheCreeperTweaks
 
       ProgressiveAutomationHandler.init(event);
       MetallurgyHandler.init(event);
-
+      
+      pigmanAgroHandler.init(event);
    }
 
    @Mod.EventHandler

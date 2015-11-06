@@ -16,6 +16,7 @@ import javax.swing.plaf.metal.MetalScrollBarUI;
 
 import org.apache.commons.io.FileUtils;
 
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import main.feedthecreepertweaks.ConfigHandler;
 import main.feedthecreepertweaks.FeedTheCreeperTweaks;
@@ -49,10 +50,14 @@ public class PigmanAgroHandler
       FeedTheCreeperTweaks.logger.debug("Registering Zombie Pigmen Agro-er");
       PigmanAgroHandler pigmanAgroHandler =  new PigmanAgroHandler();
       pigmanAgroHandler.syncConfig();
-      pigmanAgroHandler.readJson();
-      pigmanAgroHandler.metallurgyCompatibility();
-      MinecraftForge.EVENT_BUS.register(pigmanAgroHandler);
       return pigmanAgroHandler;
+   }
+   
+   public void init( FMLInitializationEvent event )
+   {
+      readJson();
+      metallurgyCompatibility();
+      MinecraftForge.EVENT_BUS.register(this);
    }
    
    private void syncConfig()
@@ -83,8 +88,18 @@ public class PigmanAgroHandler
                metaData = jElement.getAsJsonObject().getAsJsonObject("MetaData").getAsInt();
             }
             catch(Exception e)
-            {}
-            idToMetadataMap.put(Block.getBlockFromName(blockName).getLocalizedName(), metaData);
+            {
+               // It's ok to not have metadata
+            }
+            Block block = Block.getBlockFromName(blockName);
+            if( block != null)
+            {
+               idToMetadataMap.put(block.getLocalizedName(), metaData);
+            }
+            else
+            {
+               FeedTheCreeperTweaks.logger.warn("PigmanAgroHandler cannot find: " + blockName);
+            }
          }
       }
       catch(Exception exp)
