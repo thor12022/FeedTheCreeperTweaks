@@ -51,6 +51,8 @@ info.feedthecreepertweaks.console.config.refresh=Refreshing configuration file.
 info.feedthecreepertweaks.console.load.preInit=Begin Pre-initialization
 info.feedthecreepertweaks.console.load.init=Begin Initialization
 info.feedthecreepertweaks.console.load.postInit=Begin Post-initialization
+info.feedthecreepertweaks.console.load.deathMessageDied=died at position:
 
 #CHAT
 info.feedthecreepertweaks.chat.never-withered=No Pain. No Gain. No Green Heart.
+info.feedthecreepertweaks.chat.deathMessage=Died at:

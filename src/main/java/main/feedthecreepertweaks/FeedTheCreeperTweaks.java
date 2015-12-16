@@ -20,6 +20,7 @@ import main.feedthecreepertweaks.blocks.BlockRecipeRegistry;
 import main.feedthecreepertweaks.blocks.BlockRegistry;
 import main.feedthecreepertweaks.client.gui.CreativeTabBaseMod;
 import main.feedthecreepertweaks.client.gui.GuiHandler;
+import main.feedthecreepertweaks.handlers.DeathPositionHandler;
 import main.feedthecreepertweaks.handlers.MetallurgyHandler;
 import main.feedthecreepertweaks.handlers.PigmanAgroHandler;
 import main.feedthecreepertweaks.handlers.ProgressiveAutomationHandler;
@@ -54,6 +55,7 @@ public class FeedTheCreeperTweaks
    public static Logger logger = LogManager.getLogger(ModInformation.NAME);
    
    private PigmanAgroHandler pigmanAgroHandler;
+   private DeathPositionHandler deathPositionHandler = new DeathPositionHandler();
 
    @Mod.Instance
    public static FeedTheCreeperTweaks instance;
@@ -76,6 +78,7 @@ public class FeedTheCreeperTweaks
       
 
       pigmanAgroHandler = PigmanAgroHandler.create();
+      deathPositionHandler.preInit(event);
       
       FMLCommonHandler.instance().bus().register(new EventHandler());
       NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
@@ -93,6 +96,7 @@ public class FeedTheCreeperTweaks
       MetallurgyHandler.init(event);
       
       pigmanAgroHandler.init(event);
+      deathPositionHandler.init(event);
    }
 
    @Mod.EventHandler
