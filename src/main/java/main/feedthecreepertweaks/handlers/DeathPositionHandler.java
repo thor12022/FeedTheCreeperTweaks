@@ -24,6 +24,7 @@ public class DeathPositionHandler
    public void preInit(FMLPreInitializationEvent event)
    {
       alertPlayer = ConfigHandler.config.getBoolean("alertPlayer",configSection, alertPlayer, "Alert Player of position in chat");
+      ConfigHandler.config.save();
    }
    
    public void init(FMLInitializationEvent event)
@@ -36,10 +37,11 @@ public class DeathPositionHandler
    {
       if(!event.entity.worldObj.isRemote && event.entity instanceof EntityPlayer)
       {
-         String coords = String.format("%d,%d,%d", 
+         String coords = String.format("%d,%d,%d Dimension: %d", 
                                        Math.round(event.entity.posX),
                                        Math.round(event.entity.posY),
-                                       Math.round(event.entity.posZ));
+                                       Math.round(event.entity.posZ),
+                                       event.entity.dimension);
                                        String msg = String.format("%s %s %s", 
                                                                   ((EntityPlayer)event.entity).getCommandSenderName(),
                                                                   TextHelper.localize("info." + ModInformation.ID + ".console.load.deathMessageDied"),
