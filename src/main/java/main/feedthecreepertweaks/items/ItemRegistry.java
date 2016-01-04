@@ -15,9 +15,8 @@ import net.minecraftforge.common.util.EnumHelper;
 
 public class ItemRegistry
 {
-
    // items
-   // public static Item exampleItem;
+   public static Item microCharcoal = new ItemMicroCoal();
       
    // I use multiple sections here to sort things. It's just my system, you
    // don't have to.
@@ -26,6 +25,6 @@ public class ItemRegistry
 
    public static void registerItems()
    {
-
+      GameRegistry.registerItem(microCharcoal, ItemMicroCoal.UNLOCALIZED_NAME);
    }
 }

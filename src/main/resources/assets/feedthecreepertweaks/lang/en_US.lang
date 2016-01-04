@@ -6,8 +6,15 @@ gui.feedthecreepertweaks.config.title=Feed the Creeper Tweaks Configuration
 
 #BLOCKS
 
+#TILE
+tile.feedthecreepertweaks.cobblePopper.name=Cobble Popper
+
+
 #ITEMS
-item.feedthecreepertweaks.starryApple.name=Starry Apple
+item.feedthecreepertweaks.microCharcoal.name=Micro Charcoal
+
+item.feedthecreepertweaks.microCoal.name=Micro Coal
+
 item.feedthecreepertweaks.axeBedrockium.name=Bedrockium Axe
 item.feedthecreepertweaks.hoeBedrockium.name=Bedrockium Hoe
 item.feedthecreepertweaks.pickBedrockium.name=Bedrockium Pickaxe
