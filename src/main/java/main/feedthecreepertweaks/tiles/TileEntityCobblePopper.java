@@ -1,5 +1,7 @@
 package main.feedthecreepertweaks.tiles;
 
+import java.util.Random;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,7 +20,9 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
    private static final int TICK_Y_CHECK = 15;
    private static final int TICK_Z_CHECK = 5;
    
-   private static final float LAUNCH_Y_VELOCITY = 0.5f;
+   private static final Random random = new Random();
+   
+   private static final double LAUNCH_VELOCITY_MULTIPLIER = 0.1875d;
    
    private ItemStack cobbleStack = null;
    private int tickCount = 0;
@@ -53,12 +57,13 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
           {
              ItemStack stack = cobbleStack;
              cobbleStack = null;
-             EntityItem entityItem = new EntityItem(worldObj, xCoord + 0.5f, yCoord + 1, zCoord + 0.5f, stack);
+             EntityItem entityItem = new EntityItem(worldObj, xCoord + 0.5f, yCoord + 1.25, zCoord + 0.5f, stack);
              entityItem.delayBeforeCanPickup = 5;
-             entityItem.motionX = 0f;
-             entityItem.motionY = LAUNCH_Y_VELOCITY;
-             entityItem.motionZ = 0f;
+             entityItem.motionX = random.nextGaussian() * LAUNCH_VELOCITY_MULTIPLIER;
+             entityItem.motionY = LAUNCH_VELOCITY_MULTIPLIER * Math.abs(random.nextGaussian());
+             entityItem.motionZ = random.nextGaussian() * LAUNCH_VELOCITY_MULTIPLIER;
              worldObj.spawnEntityInWorld(entityItem);
+             
           }
           
           if(cobbleStack == null && isPowered && lavaCount > 0 && waterCount > 0)
