@@ -53,9 +53,11 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
           {
              ItemStack stack = cobbleStack;
              cobbleStack = null;
-             EntityItem entityItem = new EntityItem(worldObj, xCoord, yCoord + 1, zCoord, stack);
+             EntityItem entityItem = new EntityItem(worldObj, xCoord + 0.5f, yCoord + 1, zCoord + 0.5f, stack);
              entityItem.delayBeforeCanPickup = 5;
-             entityItem.setVelocity(0, LAUNCH_Y_VELOCITY, 0);
+             entityItem.motionX = 0f;
+             entityItem.motionY = LAUNCH_Y_VELOCITY;
+             entityItem.motionZ = 0f;
              worldObj.spawnEntityInWorld(entityItem);
           }
           
@@ -71,12 +73,20 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
        else if(tickCount == TICK_REDSTONE_CHECK)
        {
           isPowered = false;
-          isPowered |= worldObj.getBlock(xCoord + 1, yCoord, zCoord).isProvidingWeakPower(worldObj, xCoord, yCoord, zCoord, 4) > 0;
-          isPowered |= worldObj.getBlock(xCoord - 1, yCoord, zCoord).isProvidingWeakPower(worldObj, xCoord, yCoord, zCoord, 5) > 0;
-          isPowered |= worldObj.getBlock(xCoord, yCoord + 1, zCoord).isProvidingWeakPower(worldObj, xCoord, yCoord, zCoord, 0) > 0;
-          isPowered |= worldObj.getBlock(xCoord, yCoord - 1, zCoord).isProvidingWeakPower(worldObj, xCoord, yCoord, zCoord, 1) > 0;
-          isPowered |= worldObj.getBlock(xCoord, yCoord, zCoord + 1).isProvidingWeakPower(worldObj, xCoord, yCoord, zCoord, 2) > 0;
-          isPowered |= worldObj.getBlock(xCoord, yCoord, zCoord - 1).isProvidingWeakPower(worldObj, xCoord, yCoord, zCoord, 3) > 0;
+          /**
+           *   @note this next block was taken from Modular Systems by PaulJoda
+           *   https://github.com/TeamCoS/Modular-Systems/blob/28044dbcd1aefc92ebd19f36a606858f9364f0d6/src/main/java/com/pauljoda/modularsystems/core/tiles/DummyRedstoneInput.java#L40
+           **/
+          for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
+          {
+             int weakPower = worldObj.getBlock(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ).isProvidingWeakPower(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir.ordinal());
+             int strongPower = worldObj.getBlock(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ).isProvidingStrongPower(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir.ordinal());
+             if (weakPower > 0 || strongPower > 0)
+             {
+                isPowered = true;
+             }
+         }
+          
           
        }
        else if(tickCount  == TICK_X_CHECK)
