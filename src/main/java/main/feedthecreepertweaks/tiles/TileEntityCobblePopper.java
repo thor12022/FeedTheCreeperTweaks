@@ -15,10 +15,9 @@ import net.minecraftforge.common.util.ForgeDirection;
 public class TileEntityCobblePopper extends TileEntity implements ISidedInventory
 {
    private static final int TICK_PRODUCE = 20;
-   private static final int TICK_REDSTONE_CHECK = 18;
-   private static final int TICK_X_CHECK = 10;
-   private static final int TICK_Y_CHECK = 15;
-   private static final int TICK_Z_CHECK = 5;
+   private static final int TICK_SECONDARY_PRODUCE = 10;
+   private static final int TICK_RESET = 20;
+   private static final int MAX_STORAGE = 2;
    
    private static final Random random = new Random();
    
@@ -26,10 +25,6 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
    
    private ItemStack cobbleStack = null;
    private int tickCount = 0;
-   private int lavaCount = 0;
-   private int waterCount = 0;
-   private boolean isCovered = false;
-   private boolean isPowered = false;
    
    @Override
    public int getSizeInventory()
@@ -37,92 +32,140 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
       return 1 ;
    }
    
+   /**
+    * 
+    * @returns true is there is a block with a solid bottom face above this block
+    */
+   private boolean isBlockCovered()
+   {
+      Block block = worldObj.getBlock(xCoord, yCoord + 1, zCoord);
+      return block != null && block.isSideSolid(worldObj, xCoord,yCoord + 1, zCoord, ForgeDirection.DOWN);
+   }
+   
+   /**
+    * 
+    * @returns the number of lava-water pairs around the block
+    */
+   private int checkForLavaAndWater()
+   {
+      int lavaCount = 0, waterCount = 0;
+      final ForgeDirection[] checkDirections = {ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.EAST, ForgeDirection.WEST};
+      for (ForgeDirection dir : checkDirections)
+      {
+         Block block = worldObj.getBlock(xCoord + dir.offsetX, yCoord, zCoord+ dir.offsetZ);
+         lavaCount += (block == Blocks.lava) ? 1 : 0;
+         waterCount += (block == Blocks.water) ? 1 : 0;
+     }
+      if(lavaCount == 2 && waterCount == 2)
+      {
+         return 2;
+      }
+      else if( lavaCount > 0 && waterCount > 0)
+      {
+         return 1;
+      }
+      else
+      {
+         return 0;
+      }
+   }
+   
+   private boolean isRedstonePowered()
+   {
+      /**
+       *   @note this functionality was taken from Modular Systems by PaulJoda
+       *   https://github.com/TeamCoS/Modular-Systems/blob/28044dbcd1aefc92ebd19f36a606858f9364f0d6/src/main/java/com/pauljoda/modularsystems/core/tiles/DummyRedstoneInput.java#L40
+       **/
+      for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
+      {
+         int weakPower = worldObj.getBlock(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ).isProvidingWeakPower(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir.ordinal());
+         int strongPower = worldObj.getBlock(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ).isProvidingStrongPower(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir.ordinal());
+         if (weakPower > 0 || strongPower > 0)
+         {
+            return true;
+         }
+     }
+      return false;
+   }
+   
+   /**
+    * Ejects a stack of a single cobblestone n the air
+    * @pre this.cobbleStack must be non-null and valid
+    * @post this.cobbleStack stack size is decremented, if stack size 0, this.cobbleStack set to null
+    */
+   private void launchACobble()
+   {
+      if(cobbleStack == null)
+      {
+         return;
+      }
+      
+      ItemStack launchStack = cobbleStack.splitStack(1);
+      if(cobbleStack.stackSize == 0)
+      {
+         cobbleStack = null;
+      }
+      EntityItem entityItem = new EntityItem(worldObj, xCoord + 0.5f, yCoord + 1.25, zCoord + 0.5f, launchStack);
+      entityItem.delayBeforeCanPickup = 5;
+      entityItem.motionX = random.nextGaussian() * LAUNCH_VELOCITY_MULTIPLIER;
+      entityItem.motionY = LAUNCH_VELOCITY_MULTIPLIER * Math.abs(random.nextGaussian());
+      entityItem.motionZ = random.nextGaussian() * LAUNCH_VELOCITY_MULTIPLIER;
+      worldObj.spawnEntityInWorld(entityItem);
+   }
+   
    @Override
    public void updateEntity()
    {
        super.updateEntity();
        
-       if (worldObj.isRemote) 
+       if(worldObj.isRemote) 
        {
           return;
        }
        
        ++tickCount;
        
-       final int[] posDeltas = {-1, 1};
-       
        if(tickCount  == TICK_PRODUCE)
        {
-          if(cobbleStack != null && !isCovered)
+          if(isRedstonePowered())
           {
-             ItemStack stack = cobbleStack;
-             cobbleStack = null;
-             EntityItem entityItem = new EntityItem(worldObj, xCoord + 0.5f, yCoord + 1.25, zCoord + 0.5f, stack);
-             entityItem.delayBeforeCanPickup = 5;
-             entityItem.motionX = random.nextGaussian() * LAUNCH_VELOCITY_MULTIPLIER;
-             entityItem.motionY = LAUNCH_VELOCITY_MULTIPLIER * Math.abs(random.nextGaussian());
-             entityItem.motionZ = random.nextGaussian() * LAUNCH_VELOCITY_MULTIPLIER;
-             worldObj.spawnEntityInWorld(entityItem);
-             
-          }
-          
-          if(cobbleStack == null && isPowered && lavaCount > 0 && waterCount > 0)
-          {
-             cobbleStack = new ItemStack(Item.getItemFromBlock(Blocks.cobblestone), (lavaCount + waterCount )/2);
-          }
-          
-          tickCount = 0;
-          lavaCount = 0;
-          waterCount = 0;
-       }
-       else if(tickCount == TICK_REDSTONE_CHECK)
-       {
-          isPowered = false;
-          /**
-           *   @note this next block was taken from Modular Systems by PaulJoda
-           *   https://github.com/TeamCoS/Modular-Systems/blob/28044dbcd1aefc92ebd19f36a606858f9364f0d6/src/main/java/com/pauljoda/modularsystems/core/tiles/DummyRedstoneInput.java#L40
-           **/
-          for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
-          {
-             int weakPower = worldObj.getBlock(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ).isProvidingWeakPower(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir.ordinal());
-             int strongPower = worldObj.getBlock(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ).isProvidingStrongPower(worldObj, xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ, dir.ordinal());
-             if (weakPower > 0 || strongPower > 0)
+             if(cobbleStack != null && !isBlockCovered())
              {
-                isPowered = true;
+                launchACobble();
              }
-         }
-          
-          
-       }
-       else if(tickCount  == TICK_X_CHECK)
-       {
-          for( int xDelta : posDeltas)
-          {
-             Block block = worldObj.getBlock(xCoord + xDelta, yCoord, zCoord);
-             lavaCount += (block == Blocks.lava) ? 1 : 0;
-             waterCount += (block == Blocks.water) ? 1 : 0;
+             
+             if(cobbleStack == null && checkForLavaAndWater() > 0)
+             {
+                cobbleStack = new ItemStack(Item.getItemFromBlock(Blocks.cobblestone), 1);
+             }
           }
        }
-       else if(tickCount == TICK_Y_CHECK)
+       else if(tickCount == TICK_SECONDARY_PRODUCE)
        {
-          Block block = worldObj.getBlock(xCoord, yCoord + 1, zCoord);
-          if(block != null && block.isSideSolid(worldObj, xCoord,yCoord + 1, zCoord, ForgeDirection.DOWN))
+          if(isRedstonePowered())
           {
-             isCovered = true;
-          }
-          else
-          {
-             isCovered = false;
+             if(cobbleStack != null && !isBlockCovered())
+             {
+                launchACobble();
+             }
+             
+             if(checkForLavaAndWater() > 1)
+             {
+                if(cobbleStack == null )
+                {
+                   cobbleStack = new ItemStack(Item.getItemFromBlock(Blocks.cobblestone), 1);
+                }
+                else if(cobbleStack.stackSize > MAX_STORAGE)
+                {
+                   cobbleStack.stackSize++;
+                }
+             }
           }
        }
-       else if(tickCount == TICK_Z_CHECK)
+       
+       if(tickCount == TICK_RESET)
        {
-          for( int zDelta : posDeltas)
-          {
-             Block block = worldObj.getBlock(xCoord, yCoord, zCoord + zDelta);
-             lavaCount += (block == Blocks.lava) ? 1 : 0;
-             waterCount += (block == Blocks.water) ? 1 : 0;
-          }
+          tickCount = 0;
        }
    }
 
@@ -144,8 +187,11 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
    {
       if(cobbleStack != null && slot == 0 && number > 0)
       {
-         ItemStack stack = cobbleStack;
-         cobbleStack = null;
+         ItemStack stack = cobbleStack.splitStack(1);
+         if(cobbleStack.stackSize == 0)
+         {
+            cobbleStack = null;
+         }
          return stack;
       }
       else
