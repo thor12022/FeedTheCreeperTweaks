@@ -155,7 +155,7 @@ public class TileEntityCobblePopper extends TileEntity implements ISidedInventor
                 {
                    cobbleStack = new ItemStack(Item.getItemFromBlock(Blocks.cobblestone), 1);
                 }
-                else if(cobbleStack.stackSize > MAX_STORAGE)
+                else if(cobbleStack.stackSize < MAX_STORAGE)
                 {
                    cobbleStack.stackSize++;
                 }
