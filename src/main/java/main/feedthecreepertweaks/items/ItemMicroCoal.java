@@ -33,7 +33,7 @@ public class ItemMicroCoal extends ItemBase implements IFuelHandler
    
    public String getUnlocalizedName(ItemStack stack)
    {
-       return (stack.getItemDamage() == 1 ? ModInformation.ID + ":" + "microCharcoal" : getUnlocalizedName());
+       return (stack.getItemDamage() == 1 ? "item." + ModInformation.ID + "." + "microCharcoal" : getUnlocalizedName());
    }
 
    @SideOnly(Side.CLIENT)

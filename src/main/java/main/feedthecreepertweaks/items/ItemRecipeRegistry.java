@@ -30,9 +30,17 @@ public class ItemRecipeRegistry
 
    private static void registerShaplessRecipes()
    {
-      // GameRegistry.addShapelessRecipe(new
-      // ItemStack(BlockRegistry.exampleBlock), new
-      // ItemStack(ItemRegistry.exampleItem, 9));
+      Item miniCoal = GameRegistry.findItem("Ztones", "minicoal");
+      if(miniCoal != null)
+      {
+         GameRegistry.addShapelessRecipe(new ItemStack(ItemRegistry.microCoal, 4), new ItemStack(miniCoal, 1));
+      }
+
+      Item miniCharcoal = GameRegistry.findItem("Ztones", "minicharcoal");
+      if(miniCharcoal != null)
+      {
+         GameRegistry.addShapelessRecipe(new ItemStack(ItemRegistry.microCoal, 4, 1), new ItemStack(miniCharcoal, 1));
+      }
    }
 
    public static void registerItemRecipes()
