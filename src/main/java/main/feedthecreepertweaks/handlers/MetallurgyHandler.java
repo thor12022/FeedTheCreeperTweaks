@@ -19,10 +19,16 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import main.feedthecreepertweaks.ConfigHandler;
 import main.feedthecreepertweaks.FeedTheCreeperTweaks;
 import main.feedthecreepertweaks.util.MultiRange;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntityPigZombie;
 import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
+import net.minecraftforge.common.IExtendedEntityProperties;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent.*;
 import tconstruct.library.TConstructRegistry;
@@ -122,6 +128,28 @@ public class MetallurgyHandler
       }
    }
 
+   private static class EntityInfo implements IExtendedEntityProperties
+   {
+      public boolean attemptedEntityArmouring = false;
+      
+      @Override
+      public void saveNBTData(NBTTagCompound compound)
+      {
+         attemptedEntityArmouring = compound.getBoolean("attemptedEntityArmouring");
+      }
+
+      @Override
+      public void loadNBTData(NBTTagCompound compound)
+      {
+         compound.setBoolean("attemptedEntityArmouring", attemptedEntityArmouring);
+      }
+
+      @Override
+      public void init(Entity entity, World world)
+      {}
+      
+   }
+   
    private static List<MetalSpawningInfo> metalList = new LinkedList<MetalSpawningInfo>();
    private static Map<String, MultiRange> metalSetDimensionMap = new HashMap<String, MultiRange>();
    private static final Map<String, MultiRange> metalSetDefaultDimensionMap;
@@ -182,22 +210,48 @@ public class MetallurgyHandler
    }
    
    @SubscribeEvent
+   public void onEntityConstructing(EntityConstructing event)
+   {
+      // Only keep track of Zombies and skeletons
+      if(event.entity instanceof EntityZombie || event.entity instanceof EntityPigZombie || event.entity instanceof EntitySkeleton)
+      {
+         event.entity.registerExtendedProperties(this.getClass().getName(), new EntityInfo());
+      }
+   }
+   
+   @SubscribeEvent
    public void onLivingSpawn(LivingSpawnEvent event)
    {
       if(event instanceof AllowDespawn)
       {
          return;
       }
-      // Only give armour and weapons to Zombies and skeletons
+      // Only give armor and weapons to Zombies and skeletons
       if(event.entityLiving instanceof EntityZombie || event.entityLiving instanceof EntityPigZombie || event.entityLiving instanceof EntitySkeleton)
       {
+         EntityInfo info;
+         try
+         {
+            info = (EntityInfo) event.entityLiving.getExtendedProperties(this.getClass().getName());
+         }
+         catch(ClassCastException excp)
+         {
+            return;
+         }
+         
+         // if we've already armored this mob, we can leave now
+         if(info.attemptedEntityArmouring == true)
+         {
+            return;
+         }
+         
          // only give Zombies swords
          if(((event.entityLiving instanceof EntityZombie || event.entityLiving instanceof EntityPigZombie) ? event.world.rand.nextFloat() : 1) < mobSpawnChance )
          {
             MetalSpawningInfo metal = getRandomWeaponMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(0, MetallurgyApi.getMetalSet(metal.metalSetName).getSword(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(0, getNewSwordStack(metal.metalSetName, metal.metalName));
             }
          }
 
@@ -207,7 +261,7 @@ public class MetallurgyHandler
             MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(4, MetallurgyApi.getMetalSet(metal.metalSetName).getHelmet(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(4, getNewHelmetStack(metal.metalSetName, metal.metalName));
             }
          }
          
@@ -217,7 +271,7 @@ public class MetallurgyHandler
             MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(3, MetallurgyApi.getMetalSet(metal.metalSetName).getChestplate(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(3, getNewChestplateStack(metal.metalSetName, metal.metalName));
             }
          }
 
@@ -227,7 +281,7 @@ public class MetallurgyHandler
             MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(2, MetallurgyApi.getMetalSet(metal.metalSetName).getLeggings(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(2, getNewLeggingsStack(metal.metalSetName, metal.metalName));
             }
          }
 
@@ -237,10 +291,11 @@ public class MetallurgyHandler
             MetalSpawningInfo metal = getRandomArmourMetal(event.entityLiving.dimension, event.world.rand);
             if(metal != null)
             {
-               event.entityLiving.setCurrentItemOrArmor(1, MetallurgyApi.getMetalSet(metal.metalSetName).getBoots(metal.metalName));
+               event.entityLiving.setCurrentItemOrArmor(1, getNewBootsStack(metal.metalSetName, metal.metalName));
             }
          }
          
+         info.attemptedEntityArmouring = true;
       }
    }
    
@@ -268,5 +323,30 @@ public class MetallurgyHandler
          }
       }
       return null;
+   }
+
+   private static ItemStack getNewSwordStack(String metalSetName, String metalName)
+   {
+      return new ItemStack(MetallurgyApi.getMetalSet(metalSetName).getSword(metalName).getItem(), 1);
+   }
+   
+   private static ItemStack getNewHelmetStack(String metalSetName, String metalName)
+   {
+      return new ItemStack(MetallurgyApi.getMetalSet(metalSetName).getHelmet(metalName).getItem(), 1);
+   }
+   
+   private static ItemStack getNewChestplateStack(String metalSetName, String metalName)
+   {
+      return new ItemStack(MetallurgyApi.getMetalSet(metalSetName).getChestplate(metalName).getItem(), 1);
+   }
+   
+   private static ItemStack getNewLeggingsStack(String metalSetName, String metalName)
+   {
+      return new ItemStack(MetallurgyApi.getMetalSet(metalSetName).getLeggings(metalName).getItem(), 1);
+   }
+   
+   private static ItemStack getNewBootsStack(String metalSetName, String metalName)
+   {
+      return new ItemStack(MetallurgyApi.getMetalSet(metalSetName).getBoots(metalName).getItem(), 1);
    }
 }
