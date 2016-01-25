@@ -25,6 +25,7 @@ public class ConfigHandler
    // Options in the config
    public static boolean doDebug = false;
    public static boolean progressiveAutomationToolOverride = true;
+   public static boolean strongholdWand = false;
    
    public static void init(File configDir)
    {
@@ -38,6 +39,7 @@ public class ConfigHandler
       doDebug = config.getBoolean("Debug Information",generalSection, doDebug, "");
       
       progressiveAutomationToolOverride = config.getBoolean("Progressive Automation Tool Override",progressiveAutomationSection, progressiveAutomationToolOverride, "");
+      strongholdWand = config.getBoolean("Stronghold Wand Enabled",generalSection, strongholdWand, "Not fully implemented");
       
       config.save();
    }

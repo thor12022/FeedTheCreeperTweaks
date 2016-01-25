@@ -17,6 +17,7 @@ public class ItemRegistry
 {
    // items
    public static Item microCoal = new ItemMicroCoal();
+   public static Item strongholdWand = new ItemStrongholdWand();
       
    // I use multiple sections here to sort things. It's just my system, you
    // don't have to.
@@ -26,5 +27,9 @@ public class ItemRegistry
    public static void registerItems()
    {
       GameRegistry.registerItem(microCoal, ItemMicroCoal.UNLOCALIZED_NAME);
+      if(ConfigHandler.strongholdWand)
+      {
+         GameRegistry.registerItem(strongholdWand, ItemStrongholdWand.UNLOCALIZED_NAME);
+      }
    }
 }
