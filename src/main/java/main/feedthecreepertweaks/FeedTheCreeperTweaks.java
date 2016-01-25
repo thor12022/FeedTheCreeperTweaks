@@ -14,13 +14,12 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.registry.EntityRegistry;
-import cpw.mods.fml.common.registry.GameRegistry;
 import main.feedthecreepertweaks.blocks.BlockRecipeRegistry;
 import main.feedthecreepertweaks.blocks.BlockRegistry;
 import main.feedthecreepertweaks.client.gui.CreativeTabBaseMod;
 import main.feedthecreepertweaks.client.gui.GuiHandler;
 import main.feedthecreepertweaks.handlers.DeathPositionHandler;
+import main.feedthecreepertweaks.handlers.MetallurgyClassicMachinesHandler;
 import main.feedthecreepertweaks.handlers.MetallurgyHandler;
 import main.feedthecreepertweaks.handlers.PigmanAgroHandler;
 import main.feedthecreepertweaks.handlers.ProgressiveAutomationHandler;
@@ -32,11 +31,6 @@ import main.feedthecreepertweaks.util.EventHandler;
 import main.feedthecreepertweaks.util.OreDictHandler;
 import main.feedthecreepertweaks.util.TextHelper;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.item.crafting.FurnaceRecipes;
-import net.minecraft.world.biome.BiomeGenBase;
-import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.common.BiomeManager;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
@@ -97,6 +91,7 @@ public class FeedTheCreeperTweaks
       
       pigmanAgroHandler.init(event);
       deathPositionHandler.init(event);
+      MetallurgyClassicMachinesHandler.init(event);
    }
 
    @Mod.EventHandler
