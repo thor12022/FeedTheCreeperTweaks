@@ -16,9 +16,7 @@ public class BlockRecipeRegistry
    // registerPulverizerRecipes
    private static void registerShapedRecipes()
    {
-      // GameRegistry.addRecipe(new ShapedOreRecipe(new
-      // ItemStack(Blocks.gold_ore), new Object[]{"XXX", "X X", "XXX", 'X',
-      // "ingotGold"}));
+      GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(BlockRegistry.blockCobblePopper), new Object[]{"coc", "opo", "coc", 'c', "cobblestone", 'o', "blockObsidian", 'p', new ItemStack(Blocks.piston)}));
    }
 
    private static void registerShaplessRecipes()
