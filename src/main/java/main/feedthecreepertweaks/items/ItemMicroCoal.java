@@ -21,7 +21,6 @@ public class ItemMicroCoal extends ItemBase implements IFuelHandler
    
    private final static int BURN_TIME = 50;
    
-   @SideOnly(Side.CLIENT)
    private IIcon[] icons = new IIcon[2];
       
    public ItemMicroCoal()
